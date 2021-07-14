@@ -405,7 +405,42 @@ twoDigsToPPU:
         sta ppu_data
         rts
 
-renderCode:
+; -------------------------------------------------------------------------------------------------
+
+        ; The non-maskable interrupt routine.
+        ; Arg: skip_nmi: if nonzero, skip doing the usual stuff
+        ; Out: nmi_done: set to nonzero when exiting
+
+        ; push A, X, Y
+nmi     pha
+        txa
+        pha
+        tya
+        pha
+
+        inc hackRAM+4
+        lda hackRAM+4
+        cmp #3
+        bne +
+        lda #0
+        sta hackRAM+4
++
+
+; code rendering
+        ldx #0
+        ldy #$62
+        lda hackRAM+4
+        cmp #1
+        bne +
+        ldx #4
+        ldy #$82
++
+        lda hackRAM+4
+        cmp #2
+        bne +
+        ldy #$A2
+        ldx #8
++
         lda #$20
         sta ppu_addr
         tya
@@ -420,25 +455,6 @@ renderCode:
         jsr twoDigsToPPU
         lda decoded_codes+3, x
         jsr twoDigsToPPU
-        rts
-
-; -------------------------------------------------------------------------------------------------
-
-        ; The non-maskable interrupt routine.
-        ; Arg: skip_nmi: if nonzero, skip doing the usual stuff
-        ; Out: nmi_done: set to nonzero when exiting
-
-        ; push A, X, Y
-nmi     pha
-        txa
-        pha
-        tya
-        pha
-
-; code rendering
-        ldx #0
-        ldy #$41
-        jsr renderCode
 
         lda skip_nmi
         bne +
