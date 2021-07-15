@@ -20,7 +20,11 @@ endr
 ; --- CHR ROM -------------------------------------------------------------------------------------
 
     ; 256 bytes, repeated 32 times
-rept 32
     incbin "original.chr"
-endr
 
+
+        ; ldx #0
+        ; lda decoded_codes, x
+        ; sta $100, x
+        ; lda #1
+        ; sta $100

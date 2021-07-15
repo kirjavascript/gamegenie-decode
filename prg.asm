@@ -118,8 +118,8 @@ codes_left_to_decode     equ $88
 genie_control_value      equ $89
 decoded_code             equ $8a    ; 4 bytes; current decoded Game Genie code (see below)
 decoded_codes            equ $90    ; 16 bytes (12 actually used); all decoded Game Genie codes
-hackRAM := $100
 ;                                     (see "arrays" below)
+usedRAM := $100
 interleaved_sprite_data  equ $0200  ; 256 bytes; copied to OAM
 vram_buffer              equ $0300  ; 256 bytes; several VRAM blocks to be copied to VRAM
 vram_block               equ $0440  ; 35 bytes; a block of bytes to be copied to VRAM
@@ -391,7 +391,7 @@ read_joypads
         rts
 
 twoDigsToPPU:
-        sta hackRAM+3
+        sta usedRAM+3
         and #$F0
         lsr a
         lsr a
@@ -399,7 +399,7 @@ twoDigsToPPU:
         lsr a
         adc #$C0
         sta ppu_data
-        lda hackRAM+3
+        lda usedRAM+3
         and #$0F
         adc #$C0
         sta ppu_data
@@ -418,24 +418,25 @@ nmi     pha
         tya
         pha
 
-        inc hackRAM+4
-        lda hackRAM+4
+; use a counter to decide which line to draw this frame
+        inc usedRAM+4
+        lda usedRAM+4
         cmp #3
         bne +
         lda #0
-        sta hackRAM+4
+        sta usedRAM+4
 +
 
 ; code rendering
         ldx #0
         ldy #$62
-        lda hackRAM+4
+        lda usedRAM+4
         cmp #1
         bne +
         ldx #4
         ldy #$82
 +
-        lda hackRAM+4
+        lda usedRAM+4
         cmp #2
         bne +
         ldy #$A2
@@ -3013,9 +3014,9 @@ check_select_and_start
         beq -
 
         lda code_pointer
-        sta hackRAM
+        sta usedRAM
         lda code_pointer+1
-        sta hackRAM+1
+        sta usedRAM+1
 
         lda #0
         sta temp1
@@ -3232,9 +3233,9 @@ nextcod sec
         jmp all_codes_decode_loop
 +
 
-        lda hackRAM
+        lda usedRAM
         sta code_pointer
-        lda hackRAM+1
+        lda usedRAM+1
         sta code_pointer+1
         rts
 
